@@ -1,5 +1,6 @@
-
+import swal from "sweetalert";
 import { zodResolver } from "@hookform/resolvers/zod";
+import axios from "axios";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { ZodType, z } from "zod";
@@ -21,6 +22,7 @@ export type IUserInputs = {
     .required();
 
 export type UserSchemaType = z.infer<typeof UserSchema>;
+
 const SignIn = () => {
     const {
         register,
@@ -30,8 +32,22 @@ const SignIn = () => {
     } = useForm<UserSchemaType>({
         resolver: zodResolver(UserSchema)
     });
-    const onSubmit = (data: UserSchemaType) => {
-        console.log(data);
+    const onSubmit = async (data: UserSchemaType) => {
+        await axios.post('http://localhost:5000/api/v1/user/signIn', data)
+            .then((data) => {
+                const message = data.data.message;
+                swal(`Done! ${message}`, {
+                    icon: "success",
+                })
+            })
+            .catch((err) => {
+                const errMessage = err.response.data.message;
+                swal(`Bug! ${errMessage}`, {
+                    icon: "warning",
+                })
+            })
+
+        reset()
     }
     return (
         <div className=" mt-10">

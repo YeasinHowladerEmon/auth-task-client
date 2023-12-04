@@ -6,16 +6,15 @@ import { ZodType, z } from "zod";
 import { IUserInputs } from "./SignIn";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import swal from "sweetalert";
 
 
 const UserSchema: ZodType<IUserInputs> = z
     .object({
         name: z
-            .string()
-            .nonempty({ message: "Name is required" }),
+            .string(),
         email: z
-            .string()
-            .nonempty({ message: "Email is required" }).email(),
+            .string().email(),
         password: z.string()
             .min(6, { message: "password must be at least 6 characters" })
             .max(10, { message: "Password must not exceed 10 characters" })
@@ -23,6 +22,7 @@ const UserSchema: ZodType<IUserInputs> = z
     .required();
 
 export type UserSchemaType = z.infer<typeof UserSchema>;
+
 const SignUp = () => {
     const {
         register,
@@ -32,13 +32,25 @@ const SignUp = () => {
     } = useForm<UserSchemaType>({
         resolver: zodResolver(UserSchema)
     });
+
     const onSubmit = async (data: UserSchemaType) => {
-        await axios.post('', data)
-            .then((data) => console.log(data))
-            .catch((err) => console.log(err))
+        await axios.post('http://localhost:5000/api/v1/user/signUp', data)
+            .then((data) => {
+                const message = data.data.message;
+                swal(`Done! ${message}`, {
+                    icon: "success",
+                })
+            })
+            .catch((err) => {
+                const errMessage = err.response.data.message;
+                swal(`Bug! ${errMessage}`, {
+                    icon: "warning",
+                })
+            })
 
         reset()
     }
+    
     return (
         <div className=" mt-10">
             <div className='grid grid-cols-1 justify-items-center'>
@@ -46,17 +58,17 @@ const SignUp = () => {
                 <form onSubmit={handleSubmit(onSubmit)} className="lg:w-[60%] md:w-[43%] w-[100%] mt-4">
                     <div >
                         <label className='label'>Name</label>
-                        <input type="text" className="input input-bordered input-primary w-full " placeholder="Name"   {...register('name')} />
+                        <input required type="text" className="input input-bordered input-primary w-full " placeholder="Name"   {...register('name')} />
                         {errors.name && <p>{errors.name.message}</p>}
                     </div>
                     <div className="mt-4">
                         <label className='label'>Email</label>
-                        <input type="text" className="input input-bordered input-primary w-full " placeholder="Email"   {...register('email')} />
+                        <input required type="text" className="input input-bordered input-primary w-full " placeholder="Email"   {...register('email')} />
                         {errors.email && <p>{errors.email.message}</p>}
                     </div>
                     <div className="mt-4">
                         <label className='label'>Password</label>
-                        <input type="text" className="input input-bordered input-primary w-full " placeholder="Password"   {...register('password')} />
+                        <input required type="text" className="input input-bordered input-primary w-full " placeholder="Password"   {...register('password')} />
                         {errors.password && <p>{errors.password.message}</p>}
                     </div>
 
